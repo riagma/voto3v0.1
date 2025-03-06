@@ -1,0 +1,33 @@
+[
+    {
+      "id": "1",
+      "titulo": "Detalle de Elección Presidencial",
+      "descripcion": "Esta es la descripción para la elección presidencial.",
+      "fechaInicio": "2025-03-10",
+      "fechaFin": "2025-03-15",
+      "candidatos": ["Candidato A", "Candidato B", "Candidato C"],
+      "estado": "abierta",
+      "estadoUsuario": "registrado"
+    },
+    {
+      "id": "2",
+      "titulo": "Detalle de Elección Parlamentaria",
+      "descripcion": "Esta es la descripción para la elección parlamentaria.",
+      "fechaInicio": "2025-02-05",
+      "fechaFin": "2025-02-10",
+      "candidatos": ["Candidato D", "Candidato E", "Candidato F"],
+      "estado": "concluida",
+      "estadoUsuario": "votado"
+    },
+    {
+      "id": "3",
+      "titulo": "Detalle de Consulta Popular",
+      "descripcion": "Esta es la descripción para la consulta popular.",
+      "fechaInicio": "2025-04-18",
+      "fechaFin": "2025-04-20",
+      "candidatos": ["Candidato G", "Candidato H"],
+      "estado": "abierta",
+      "estadoUsuario": "registrable"
+    }
+  ]
+  

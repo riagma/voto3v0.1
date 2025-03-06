@@ -1,0 +1,24 @@
+[
+    {
+      "id": "1",
+      "titulo": "Elección Presidencial",
+      "fechaCelebracion": "2025-03-15",
+      "estadoFecha": "abierta",
+      "estadoUsuario": "registrado"
+    },
+    {
+      "id": "2",
+      "titulo": "Elección Parlamentaria",
+      "fechaCelebracion": "2025-02-10",
+      "estadoFecha": "pasada",
+      "estadoUsuario": "votado"
+    },
+    {
+      "id": "3",
+      "titulo": "Consulta Popular",
+      "fechaCelebracion": "2025-04-20",
+      "estadoFecha": "próxima",
+      "estadoUsuario": "registrable"
+    }
+  ]
+  

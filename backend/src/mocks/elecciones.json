@@ -1,0 +1,10 @@
+[
+  {
+    "id": "1a2b3c4d",
+    "titulo": "Elección Presidencial 2025",
+    "descripcion": "Elección presidencial nacional.",
+    "fechaInicio": "2025-04-01T08:00:00Z",
+    "fechaFin": "2025-04-01T20:00:00Z",
+    "candidatos": ["Candidato A", "Candidato B", "Candidato C"]
+  }
+]

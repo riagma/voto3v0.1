@@ -1,0 +1,38 @@
+# Ignorar dependencias de Node.js
+node_modules/
+**/node_modules/
+
+# Archivos de entorno
+.env
+.env.development
+.env.production
+
+# Archivos de construcción
+dist/
+build/
+backend/dist/
+backend/build/
+frontend/dist/
+frontend/build/
+
+# Base de datos SQLite de desarrollo
+backend/prisma/dev.db
+backend/prisma/dev.db-journal
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Directorios específicos de IDEs/editores
+.vscode/
+.idea/
+.DS_Store
+
+# Cachés de npm y otros temporales
+.npm/
+.pnpm-store/
+.cache/
+.pnp/
+.pnp.js
+

@@ -1,0 +1,22 @@
+[
+  {
+    "id": "b8e8b9c0-1f7c-4a5b-9b1f-dc1234567890",
+    "titulo": "Elección Presidencial 2025",
+    "descripcion": "Elección presidencial para elegir al próximo presidente del país.",
+    "fechaInicio": "2025-04-01T08:00:00Z",
+    "fechaFin": "2025-04-01T20:00:00Z",
+    "candidatos": ["Candidato A", "Candidato B", "Candidato C"],
+    "estado": "abierta",
+    "estadoUsuario": "registrado"
+  },
+  {
+    "id": "d2f9c3d4-9e1a-4abc-9f8e-0123456789ab",
+    "titulo": "Elección Local 2025",
+    "descripcion": "Elección para cargos locales del ayuntamiento.",
+    "fechaInicio": "2025-06-15T08:00:00Z",
+    "fechaFin": "2025-06-15T18:00:00Z",
+    "candidatos": ["Candidato D", "Candidato E"],
+    "estado": "concluida",
+    "estadoUsuario": "votado"
+  }
+]

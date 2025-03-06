@@ -1,0 +1,22 @@
+[
+  {
+    "idUnico": "b5f8f1a2-8c3b-4d61-a9e2-5a2f6d8b9c01",
+    "nif": "12345678A",
+    "clave": "clave1234"
+  },
+  {
+    "idUnico": "e2d9c7f4-1c4e-42a7-92a1-3b7d6e5f8a90",
+    "nif": "87654321B",
+    "clave": "clave5678"
+  },
+  {
+    "idUnico": "c3a2e9f1-5d6f-4c3b-8a7e-1f4e9c7b2d80",
+    "nif": "11223344C",
+    "clave": "clave91011"
+  },
+  {
+    "idUnico": "f1e2d3c4-b5a6-7d8e-9f0a-1b2c3d4e5f60",
+    "nif": "55667788D",
+    "clave": "clave121314"
+  }
+]
