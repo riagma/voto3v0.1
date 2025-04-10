@@ -7,13 +7,45 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Usuario {
-  idUnico      String   @id @default(uuid())
-  nombre       String   @unique
-  nif          String   @unique
+model Elector {
+  idUnico       String   @id @default(uuid())
+  nombre        String   @unique
+  nif           String   @unique
   claveServidor String
-  claveLocal   String
+  claveLocal    String
 }
+
+model Elector {
+  id_elector_sistema    Int               @id @default(autoincrement())
+  hash_dni             String            @unique // Hash SHA-256 del DNI (VARCHAR 64)
+  nombre_completo      String?
+  // Relación con el municipio de padrón
+  municipioPadron      Circunscripcion   @relation("ElectorMunicipio", fields: [id_municipio_padron], references: [id])
+  id_municipio_padron  Int
+  // Relación uno-a-uno con credenciales
+  credenciales         CredencialesAcceso?
+  // Relación uno-a-muchos con registros
+  registrosVotoElectronico RegistroVotoElectronico[]
+
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+
+  @@index([id_municipio_padron])
+}
+
+
+model CredencialesAcceso {
+  id                 Int      @id @default(autoincrement())
+  // Relación uno-a-uno explícita con Elector
+  elector            Elector  @relation(fields: [id_elector_sistema], references: [id_elector_sistema])
+  id_elector_sistema Int      @unique // Asegura que es 1 a 1
+  hash_contrasena    String   // Almacena hash (e.g., bcrypt, Argon2)
+  salt_contrasena    String   // Almacena el salt usado
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
 
 model Eleccion {
   id                String   @id @default(uuid())
@@ -22,4 +54,145 @@ model Eleccion {
   fechaInicio       DateTime
   fechaFin          DateTime
   candidatos        String[]
+}
+
+
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite" // Puedes cambiar a "postgresql", "mysql", etc. en el futuro
+  url      = env("DATABASE_URL")
+}
+
+// --- Enums ---
+enum TipoEleccion {
+  GENERALES
+  AUTONOMICAS
+  MUNICIPALES
+  EUROPEAS
+  OTRAS // Para flexibilidad
+}
+
+enum TipoCircunscripcion {
+  UNICA
+  AUTONOMIA
+  PROVINCIA
+  ISLA
+  MUNICIPIO
+  OTRA // Para flexibilidad
+}
+
+enum EstadoRegistro {
+  SOLICITADO
+  ACEPTADO
+  RECHAZADO
+}
+
+// --- Modelos ---
+
+model Eleccion {
+  id                   Int               @id @default(autoincrement())
+  tipo                 TipoEleccion
+  fecha                DateTime
+  descripcion          String?
+  // Relación opcional con la CA para elecciones autonómicas
+  comunidadAutonoma    Circunscripcion?  @relation("EleccionCA", fields: [id_comunidad_autonoma], references: [id])
+  id_comunidad_autonoma Int?
+
+  registrosVotoElectronico RegistroVotoElectronico[] // Relación uno-a-muchos
+  votosEmitidosLog         VotosEmitidosLog[]        // Relación uno-a-muchos
+
+  @@index([id_comunidad_autonoma])
+}
+
+model PartidoPolitico {
+  id      Int      @id @default(autoincrement())
+  nombre  String   @unique
+  siglas  String   @unique
+  // Podrías añadir logo, color, etc.
+  votosEmitidosLog VotosEmitidosLog[] // Relación uno-a-muchos (si logueas la opción votada por ID)
+}
+
+model Circunscripcion {
+  id                      Int               @id @default(autoincrement())
+  nombre                  String
+  tipo                    TipoCircunscripcion
+  // Relación jerárquica (padre)
+  parent                  Circunscripcion?  @relation("CircunscripcionHierarchy", fields: [parentId], references: [id])
+  parentId                Int?
+  // Relación jerárquica (hijos)
+  children                Circunscripcion[] @relation("CircunscripcionHierarchy")
+  // Relación con CA en Elecciones
+  eleccionesCA            Eleccion[]        @relation("EleccionCA")
+  // Relación con CA en TipoEleccionCircunscripcion
+  tiposEleccionCircCA     TipoEleccionCircunscripcion[] @relation("TipoEleccionCircCA")
+  // Relación con Municipio en Electores
+  electoresPadron         Elector[]         @relation("ElectorMunicipio")
+  // Relación con Circunscripción en Registros
+  registrosEleccion       RegistroVotoElectronico[] @relation("RegistroCircunscripcion")
+  // Relación con Circunscripción en Votos Emitidos
+  votosEmitidosLog        VotosEmitidosLog[]        @relation("VotoCircunscripcion")
+
+
+  @@unique([nombre, tipo]) // Evita duplicados como dos provincias con el mismo nombre
+  @@index([parentId])
+}
+
+
+model TipoEleccionCircunscripcion {
+  id                            Int                @id @default(autoincrement())
+  tipo_eleccion                 TipoEleccion
+  // Relación opcional con la CA
+  comunidadAutonoma             Circunscripcion?   @relation("TipoEleccionCircCA", fields: [id_comunidad_autonoma], references: [id])
+  id_comunidad_autonoma         Int?
+  tipo_circunscripcion_relevante TipoCircunscripcion
+
+  @@unique([tipo_eleccion, id_comunidad_autonoma]) // Regla única por tipo y CA (o NULL)
+  @@index([id_comunidad_autonoma])
+}
+
+model RegistroVotoElectronico {
+  id                          Int                @id @default(autoincrement())
+  elector                     Elector            @relation(fields: [id_elector_sistema], references: [id_elector_sistema])
+  id_elector_sistema          Int
+  eleccion                    Eleccion           @relation(fields: [id_eleccion], references: [id])
+  id_eleccion                 Int
+  // Circunscripción específica donde vota en esta elección
+  circunscripcionEleccion     Circunscripcion    @relation("RegistroCircunscripcion", fields: [id_circunscripcion_eleccion], references: [id])
+  id_circunscripcion_eleccion Int
+  fecha_registro              DateTime           @default(now())
+  estado_registro             EstadoRegistro     @default(ACEPTADO) // O SOLICITADO si requiere aprobación
+  ha_votado_en_esta_eleccion  Boolean            @default(false) // Control voto único
+
+  createdAt                   DateTime           @default(now())
+  updatedAt                   DateTime           @updatedAt
+
+  @@unique([id_elector_sistema, id_eleccion]) // Un elector solo se registra una vez por elección
+  @@index([id_elector_sistema])
+  @@index([id_eleccion])
+  @@index([id_circunscripcion_eleccion])
+}
+
+// Modelo para simular el log de votos anónimos (lo que iría a la "blockchain")
+model VotosEmitidosLog {
+  id_voto_registrado      Int              @id @default(autoincrement())
+  // No hay link directo a Elector para anonimato
+  token_voto_anonimo      String           @unique // Token único que autorizó el voto
+  // Puedes elegir guardar el ID del partido o la opción directamente
+  opcion_votada_texto     String?          // Ej: "Partido Azul"
+  partido                 PartidoPolitico? @relation(fields: [id_partido_votado], references: [id])
+  id_partido_votado       Int?             // FK opcional a PartidoPolitico
+  eleccion                Eleccion         @relation(fields: [id_eleccion], references: [id])
+  id_eleccion             Int
+  circunscripcion         Circunscripcion  @relation("VotoCircunscripcion", fields: [id_circunscripcion], references: [id])
+  id_circunscripcion      Int              // Circunscripción donde se emitió/contabiliza
+  timestamp               DateTime         @default(now())
+
+  @@index([id_eleccion])
+  @@index([id_circunscripcion])
+  @@index([id_partido_votado])
 }
