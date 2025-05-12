@@ -1,0 +1,59 @@
+{
+  "info": {
+    "_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "name": "Voto3 API - Admin Votante",
+    "schema": "https://schema.thunderclient.com/v2",
+    "version": "1.0"
+  },
+  "env": [
+    {
+      "baseUrl": "http://localhost:4000",
+      "token": "{{token}}",
+      "votanteId": "{{votanteId}}"
+    }
+  ],
+  "requests": [
+    {
+      "name": "Listar Votantes",
+      "method": "GET",
+      "url": "{{baseUrl}}/admin/votantes",
+      "headers": [
+        { "key": "Authorization", "value": "Bearer {{token}}" }
+      ]
+    },
+    {
+      "name": "Obtener Votante",
+      "method": "GET",
+      "url": "{{baseUrl}}/admin/votante/{{votanteId}}",
+      "headers": [
+        { "key": "Authorization", "value": "Bearer {{token}}" }
+      ]
+    },
+    {
+      "name": "Actualizar Votante",
+      "method": "PUT",
+      "url": "{{baseUrl}}/admin/votante/{{votanteId}}",
+      "headers": [
+        { "key": "Authorization", "value": "Bearer {{token}}" },
+        { "key": "Content-Type", "value": "application/json" }
+      ],
+      "body": {
+        "mode": "json",
+        "json": {
+          "nombre": "NuevoNombre",
+          "primerApellido": "NuevoPApellido",
+          "segundoApellido": "NuevoSApellido",
+          "correo": "nuevo@ejemplo.es"
+        }
+      }
+    },
+    {
+      "name": "Eliminar Votante",
+      "method": "DELETE",
+      "url": "{{baseUrl}}/admin/votante/{{votanteId}}",
+      "headers": [
+        { "key": "Authorization", "value": "Bearer {{token}}" }
+      ]
+    }
+  ]
+}
