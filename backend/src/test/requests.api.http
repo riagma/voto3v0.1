@@ -1,0 +1,62 @@
+@baseUrl = http://localhost:4000
+
+@tokenAdmin = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb3JyZW8iOiJyaWFnbWFAZ21haWwuY29tIiwiaXNBZG1pbiI6dHJ1ZSwiaWF0IjoxNzQ3MjUyODc5LCJleHAiOjE3NDcyODE2Nzl9.UiftS6MueC4rKic1Qo1mZmMXFI4G9tF8KN1Kqdasij4
+
+@tokenUsuario = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjU2OGJhNDhjLTEyOGMtNDNmZi1hZjBlLTMwMTczYjQ4MDIyZSIsImlhdCI6MTc0NzI1MjUyMSwiZXhwIjoxNzQ3MjgxMzIxfQ.QdGWiLaT8XVYRZYkiPazvG7400m-N1erUwJSk0itHho
+@votanteId = 568ba48c-128c-43ff-af0e-30173b48022e
+
+### LOGIN de administrador
+POST {{baseUrl}}/admin/login
+Content-Type: application/json
+
+{
+  "correo": "riagma@gmail.com",
+  "password": "1234123412341234"
+}
+### -> Copia el campo "tokenAdmin" de la respuesta y pégalo en rest-client.env.json
+
+### LOGIN de usuario
+POST {{baseUrl}}/usuario/login
+Content-Type: application/json
+
+{
+  "dni": "07584007N",
+  "password": "Password123!"
+}
+### -> Copia el campo "tokenUsuario" de la respuesta y pégalo en rest-client.env.json
+
+### PERFIL (GET /usuario/perfil)
+GET {{baseUrl}}/usuario/perfil
+Authorization: Bearer {{tokenUsuario}}
+
+###
+
+### LISTAR VOTANTES (Admin)
+GET {{baseUrl}}/admin/votantes
+Authorization: Bearer {{tokenAdmin}}
+
+###
+
+### OBTENER VOTANTE
+GET {{baseUrl}}/admin/votante/{{votanteId}}
+Authorization: Bearer {{tokenAdmin}}
+
+###
+
+### ACTUALIZAR VOTANTE
+PUT {{baseUrl}}/admin/votante/{{votanteId}}
+Authorization: Bearer {{tokenAdmin}}
+Content-Type: application/json
+
+{
+  "nombre": "María",
+  "primerApellido": "García",
+  "segundoApellido": "López",
+  "correo": "maria.garcia@example.com"
+}
+
+###
+
+### ELIMINAR VOTANTE
+DELETE {{baseUrl}}/admin/votante/{{votanteId}}
+Authorization: Bearer {{tokenAdmin}}

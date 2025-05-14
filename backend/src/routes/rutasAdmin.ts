@@ -9,6 +9,7 @@ import {
   votanteSchema,
 } from '../schemas/schemas';
 import {
+  iniciarSesionAdministrador,
   crearEleccion,
   obtenerEleccion,
   listarElecciones,
@@ -32,6 +33,8 @@ import {
 } from '../controllers/controladorAdmin';
 
 const rutasAdmin = Router();
+rutasAdmin.post('/login', iniciarSesionAdministrador);
+
 // Elecciones
 rutasAdmin.post('/eleccion', autenticarAdmin, validarEsquema(eleccionSchema), crearEleccion);
 rutasAdmin.get('/eleccion/:id', autenticarAdmin, obtenerEleccion);

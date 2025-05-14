@@ -7,7 +7,7 @@ datasource db {
 
 generator client {
   provider = "prisma-client-js"
-  output   = "node_modules/.prisma/client"
+  output   = "../node_modules/.prisma/client"
 }
 
 model Votante {
@@ -65,3 +65,10 @@ model RegistroVotanteEleccion {
 
   @@unique([votanteId, eleccionId])
 }
+
+/// Credenciales de acceso del administrador
+model Administrador {
+  correo          String      @id
+  hashContrasena  String                              
+}
+

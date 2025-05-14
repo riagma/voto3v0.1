@@ -16,20 +16,18 @@ async function main() {
   // Borra todos los votantes antes de crear nuevos
   await prisma.votante.deleteMany({});
   console.log(`Tabla vaciada. Iniciando seed para ${cantidad} votantes...`);
-
-
-  console.log(`Iniciando seed para ${cantidad} votantes...`);
   for (let i = 0; i < cantidad; i++) {
     const nombre = faker.person.firstName();
-    const primerApellido = faker.person.lastName();
-    const segundoApellido = faker.person.lastName();
+    const apellidos = faker.person.lastName().split(' ');
+    const primerApellido = apellidos[0];
+    const segundoApellido = apellidos[1];
     // Generar DNI español: 8 dígitos + letra
     const numeroDNI = faker.number.int({ min: 0, max: 99999999 }).toString().padStart(8, '0');
-    const letraDNI = faker.helpers.arrayElement(['T','R','W','A','G','M','Y','F','P','D','X','B','N','J','Z','S','Q','V','H','L','C','K','E']);
+    const letraDNI = faker.helpers.arrayElement(['T', 'R', 'W', 'A', 'G', 'M', 'Y', 'F', 'P', 'D', 'X', 'B', 'N', 'J', 'Z', 'S', 'Q', 'V', 'H', 'L', 'C', 'K', 'E']);
     const dni = `${numeroDNI}${letraDNI}`;
- // const correo = faker.internet.email();
+    // const correo = faker.internet.email();
     const correo = `${nombre.toLowerCase()}.${primerApellido.toLowerCase()}.${segundoApellido.toLowerCase()}@fake.com`;
- 
+
     const password = 'Password123!'; // Contraseña por defecto para seeding
     const hashContrasena = await bcrypt.hash(password, 10);
 

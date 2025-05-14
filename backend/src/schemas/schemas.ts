@@ -52,4 +52,10 @@ export const registroVotanteEleccionSchema = z.object({
   fechaRegistro:  z.string().refine((d) => !isNaN(Date.parse(d)), { message: "Fecha de registro inválida" }),
 });
 
+// Esquema para Votante
+export const administradorSchema = z.object({
+  correo:           z.string().email("Debe ser un email válido"),
+  hashContrasena:   z.string().min(60, { message: "Hash de contraseña inválido" }),
+});
+
 export { EstadoEleccion };

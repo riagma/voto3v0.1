@@ -22,6 +22,10 @@ export async function obtenerVotantePorId(id: string): Promise<Votante | null> {
   return prisma.votante.findUnique({ where: { id } });
 }
 
+export async function obtenerVotantePorDNI(dni: string): Promise<Votante | null> {
+  return prisma.votante.findUnique({ where: { dni } });
+}
+
 export async function listarVotantes(): Promise<Votante[]> {
   return prisma.votante.findMany();
 }

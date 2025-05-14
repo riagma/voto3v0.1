@@ -28,6 +28,7 @@ export async function autenticarAdmin(req: Request, res: Response, next: NextFun
   }
   try {
     const contenido: any = jwt.verify(encabezado[1], SECRETO_JWT);
+    console.log(contenido);
     if (!contenido.isAdmin) {
       return res.status(403).json({ error: 'Permiso denegado' });
     }

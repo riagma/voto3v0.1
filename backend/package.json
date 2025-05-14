@@ -3,12 +3,14 @@
   "version": "1.0.0",
   "main": "dist/index.js",
   "scripts": {
-    "dev": "ts-node src/index.ts",
+    "dev": "ts-node-dev --respawn --transpile-only --watch src src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
-    "prisma:generate": "ENV_FILE=.env.development prisma generate",
+    "prisma:generate": "npx prisma generate",
     "prisma:generate:prod": "ENV_FILE=.env.production npx prisma generate",
-    "prisma:migrate": "prisma migrate dev",
+    "prisma:migrate": "npx prisma migrate dev --name",
+    "prisma:migrate:prod": "npx prisma migrate deploy",
+    "prisma:studio": "npx prisma studio",
     "prisma:seed": "ts-node prisma/seed.ts"
   },
   "dependencies": {

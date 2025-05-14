@@ -1,4 +1,9 @@
 import { Request, Response } from 'express';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
+import { 
+  obtenerAdministradorPorCorreo,
+} from '../services/servicioAdministrador';
 import {
   crearEleccionServicio,
   obtenerEleccionPorId,
@@ -29,6 +34,21 @@ import {
   actualizarVotante,
   eliminarVotante,
 } from '../services/servicioVotante';
+
+const SECRETO_JWT = process.env.JWT_SECRET || 'super_secreto';
+
+export async function iniciarSesionAdministrador(req: Request, res: Response) {
+  console.log('🛠️  LOGIN - req.body:', req.body);
+  const { correo, password } = req.body;
+  if (!correo || !password) return res.status(400).json({ error: 'Faltan credenciales' });
+  const admin = await obtenerAdministradorPorCorreo(correo);
+  if (!admin) return res.status(404).json({ error: 'Usuario no encontrado' });
+  if (!admin.hashContrasena) return res.status(401).json({ error: 'Credenciales inválidas' });
+  const esValido = await bcrypt.compare(password, admin.hashContrasena);
+  if (!esValido) return res.status(401).json({ error: 'Credenciales inválidas' });
+  const token = jwt.sign({ correo: admin.correo, isAdmin: true }, SECRETO_JWT, { expiresIn: '8h' });
+  res.json({ token });
+}
 
 // CRUD Elecciones
 export async function crearEleccion(req: Request, res: Response) {

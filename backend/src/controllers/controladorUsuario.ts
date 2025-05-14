@@ -4,9 +4,10 @@ import bcrypt from 'bcrypt';
 import {
   crearVotante,
   obtenerVotantePorId,
+  obtenerVotantePorDNI,
   listarVotantes,
-  actualizarVotante as servicioActualizarVotante,
-  eliminarVotante as servicioEliminarVotante,
+  actualizarVotante,
+  eliminarVotante,
 } from '../services/servicioVotante';
 import { listarEleccionesServicio } from '../services/servicioEleccion';
 import {
@@ -30,9 +31,10 @@ export async function registrarUsuario(req: Request, res: Response) {
 }
 
 export async function iniciarSesionUsuario(req: Request, res: Response) {
+  console.log('🛠️  LOGIN - req.body:', req.body);
   const { dni, password } = req.body;
   if (!dni || !password) return res.status(400).json({ error: 'Faltan credenciales' });
-  const votante = await obtenerVotantePorId(req.params.id || dni);
+  const votante = await obtenerVotantePorDNI(dni);
   if (!votante) return res.status(404).json({ error: 'Usuario no encontrado' });
   if (!votante.hashContrasena) return res.status(401).json({ error: 'Credenciales inválidas' });
   const esValido = await bcrypt.compare(password, votante.hashContrasena);
@@ -49,13 +51,13 @@ export async function verPerfil(req: Request, res: Response) {
 
 export async function actualizarPerfil(req: Request, res: Response) {
   const id = (req as any).votante.id;
-  const actualizado = await servicioActualizarVotante(id, req.body);
+  const actualizado = await actualizarVotante(id, req.body);
   res.json(actualizado);
 }
 
 export async function eliminarPerfil(req: Request, res: Response) {
   const id = (req as any).votante.id;
-  await servicioEliminarVotante(id);
+  await eliminarVotante(id);
   res.status(204).send();
 }
 
