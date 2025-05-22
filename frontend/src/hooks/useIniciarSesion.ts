@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { iniciarSesionLocal } from '../services/servicioAutenticacionLocal';
+import { iniciarSesionLocal } from '../services/servicioAutenticacion';
 import useUsuarioStore from '../store/usuarioStore';
 import type { UsuarioLocal } from '../types/UsuarioLocal';
 

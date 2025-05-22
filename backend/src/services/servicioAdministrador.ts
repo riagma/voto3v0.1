@@ -24,7 +24,7 @@ export async function crearAdministrador(data: {
 /**
  * Obtiene un administrador por su correo.
  */
-export async function obtenerAdministradorPorCorreo(correo: string): Promise<Administrador | null> {
+export async function obtenerAdministrador(correo: string): Promise<Administrador | null> {
   return prisma.administrador.findUnique({ where: { correo } });
 }
 
@@ -54,4 +54,31 @@ export async function actualizarAdministrador(
  */
 export async function eliminarAdministrador(correo: string): Promise<Administrador> {
   return prisma.administrador.delete({ where: { correo } });
+}
+
+type Credenciales = {
+  correo: string;
+  contrasena: string;
+};
+
+/**
+ * Valida las credenciales de un administrador.
+ * @throws Error si las credenciales son inválidas
+ */
+export async function validarCredenciales({ correo, contrasena }: Credenciales): Promise<Administrador> {
+  const admin = await prisma.administrador.findUnique({ 
+    where: { correo } 
+  });
+
+  if (!admin) {
+    throw new Error('Credenciales inválidas');
+  }
+
+  const contrasenaValida = await bcrypt.compare(contrasena, admin.hashContrasena);
+  
+  if (!contrasenaValida) {
+    throw new Error('Credenciales inválidas');
+  }
+
+  return admin;
 }

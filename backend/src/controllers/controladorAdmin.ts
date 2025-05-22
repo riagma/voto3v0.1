@@ -1,144 +1,101 @@
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
-import bcrypt from 'bcrypt';
-import { 
-  obtenerAdministradorPorCorreo,
-} from '../services/servicioAdministrador';
-import {
-  crearEleccionServicio,
-  obtenerEleccionPorId,
-  listarEleccionesServicio,
-  actualizarEleccionServicio,
-  eliminarEleccionServicio,
-} from '../services/servicioEleccion';
-import {
-  crearPartidoServicio,
-  obtenerPartidoPorId,
-  listarPartidosServicio,
-  actualizarPartidoServicio,
-  eliminarPartidoServicio,
-} from '../services/servicioPartido';
-import {
-  asignarPartidoAEleccionServicio,
-  listarPartidosPorEleccionServicio,
-  eliminarAsignacionPartido,
-} from '../services/servicioPartidoEleccion';
-import {
-  listarInscripcionesServicio,
-  actualizarInscripcionServicio,
-  eliminarInscripcionServicio,
-} from '../services/servicioRegistro';
-import {
-  listarVotantes,
-  obtenerVotantePorId,
-  actualizarVotante,
-  eliminarVotante,
-} from '../services/servicioVotante';
+import * as servicioAdmin from '../services/servicioAdministrador';
+import * as servicioEleccion from '../services/servicioEleccion';
+import * as servicioPartido from '../services/servicioPartido';
+import { listarPartidosEleccion } from '../services/servicioPartidoEleccion';
+import { listarVotantesEleccion } from '../services/servicioRegistro';
+import * as servicioVotante from '../services/servicioVotante';
+import { AppError, handleError } from '../utils/errors';
 
 const SECRETO_JWT = process.env.JWT_SECRET || 'super_secreto';
 
-export async function iniciarSesionAdministrador(req: Request, res: Response) {
-  console.log('🛠️  LOGIN - req.body:', req.body);
-  const { correo, password } = req.body;
-  if (!correo || !password) return res.status(400).json({ error: 'Faltan credenciales' });
-  const admin = await obtenerAdministradorPorCorreo(correo);
-  if (!admin) return res.status(404).json({ error: 'Usuario no encontrado' });
-  if (!admin.hashContrasena) return res.status(401).json({ error: 'Credenciales inválidas' });
-  const esValido = await bcrypt.compare(password, admin.hashContrasena);
-  if (!esValido) return res.status(401).json({ error: 'Credenciales inválidas' });
-  const token = jwt.sign({ correo: admin.correo, isAdmin: true }, SECRETO_JWT, { expiresIn: '8h' });
+const controladorWrapper = (fn: (req: Request, res: Response) => Promise<void>) => {
+  return async (req: Request, res: Response) => {
+    try {
+      await fn(req, res);
+    } catch (error) {
+      const { statusCode, message } = handleError(error);
+      res.status(statusCode).json({ error: message });
+    }
+  };
+};
+
+// Administrador
+export const iniciarSesionAdministrador = controladorWrapper(async (req: Request, res: Response) => {
+  const admin = await servicioAdmin.validarCredenciales(req.body);
+  const token = jwt.sign({ correo: admin.correo }, SECRETO_JWT, { expiresIn: '24h' });
   res.json({ token });
-}
+});
 
 // CRUD Elecciones
-export async function crearEleccion(req: Request, res: Response) {
-  const eleccion = await crearEleccionServicio(req.body);
+export const crearEleccion = controladorWrapper(async (req: Request, res: Response) => {
+  const eleccion = await servicioEleccion.crearEleccion(req.body);
   res.status(201).json(eleccion);
-}
-export async function obtenerEleccion(req: Request, res: Response) {
-  const eleccion = await obtenerEleccionPorId(req.params.id);
-  if (!eleccion) return res.status(404).json({ error: 'Elección no encontrada' });
+});
+
+export const obtenerEleccion = controladorWrapper(async (req: Request, res: Response) => {
+  const eleccion = await servicioEleccion.obtenerEleccion(req.params.nombre);
+  if (!eleccion) throw new AppError(404, 'Elección no encontrada');
   res.json(eleccion);
-}
-export async function listarElecciones(req: Request, res: Response) {
-  const elecciones = await listarEleccionesServicio();
+});
+
+export const listarElecciones = controladorWrapper(async (req: Request, res: Response) => {
+  const elecciones = await servicioEleccion.listarElecciones();
   res.json(elecciones);
-}
-export async function actualizarEleccion(req: Request, res: Response) {
-  const eleccion = await actualizarEleccionServicio(req.params.id, req.body);
+});
+
+export const actualizarEleccion = controladorWrapper(async (req: Request, res: Response) => {
+  const eleccion = await servicioEleccion.actualizarEleccion(req.params.nombre, req.body);
   res.json(eleccion);
-}
-export async function eliminarEleccion(req: Request, res: Response) {
-  await eliminarEleccionServicio(req.params.id);
+});
+
+export const eliminarEleccion = controladorWrapper(async (req: Request, res: Response) => {
+  await servicioEleccion.eliminarEleccion(req.params.nombre);
   res.status(204).send();
-}
+});
 
 // CRUD Partidos
-export async function crearPartido(req: Request, res: Response) {
-  const partido = await crearPartidoServicio(req.body);
+export const crearPartido = controladorWrapper(async (req: Request, res: Response) => {
+  const partido = await servicioPartido.crearPartido(req.body);
   res.status(201).json(partido);
-}
-export async function obtenerPartido(req: Request, res: Response) {
-  const partido = await obtenerPartidoPorId(req.params.id);
-  if (!partido) return res.status(404).json({ error: 'Partido no encontrado' });
+});
+
+export const obtenerPartido = controladorWrapper(async (req: Request, res: Response) => {
+  const partido = await servicioPartido.obtenerPartido(req.params.siglas);
+  if (!partido) throw new AppError(404, 'Partido no encontrado');
   res.json(partido);
-}
-export async function listarPartidos(req: Request, res: Response) {
-  const partidos = await listarPartidosServicio();
+});
+
+export const listarPartidos = controladorWrapper(async (req: Request, res: Response) => {
+  const partidos = await servicioPartido.listarPartidos();
   res.json(partidos);
-}
-export async function actualizarPartido(req: Request, res: Response) {
-  const partido = await actualizarPartidoServicio(req.params.id, req.body);
+});
+
+export const actualizarPartido = controladorWrapper(async (req: Request, res: Response) => {
+  const partido = await servicioPartido.actualizarPartido(req.params.siglas, req.body);
   res.json(partido);
-}
-export async function eliminarPartido(req: Request, res: Response) {
-  await eliminarPartidoServicio(req.params.id);
-  res.status(204).send();
-}
+});
 
-// CRUD Asignación Partido-Elección
-export async function asignarPartido(req: Request, res: Response) {
-  const asignacion = await asignarPartidoAEleccionServicio(req.body);
-  res.status(201).json(asignacion);
-}
-export async function listarPartidosDeEleccion(req: Request, res: Response) {
-  const lista = await listarPartidosPorEleccionServicio(req.params.eleccionId);
-  res.json(lista);
-}
-export async function eliminarAsignacion(req: Request, res: Response) {
-  await eliminarAsignacionPartido(req.params.id);
+export const eliminarPartido = controladorWrapper(async (req: Request, res: Response) => {
+  await servicioPartido.eliminarPartido(req.params.siglas);
   res.status(204).send();
-}
+});
 
-// CRUD Inscripciones (Admin)
-export async function listarInscripciones(req: Request, res: Response) {
-  const lista = await listarInscripcionesServicio();
-  res.json(lista);
-}
-export async function actualizarInscripcion(req: Request, res: Response) {
-  const insc = await actualizarInscripcionServicio(req.params.id, req.body);
-  res.json(insc);
-}
-export async function eliminarInscripcion(req: Request, res: Response) {
-  await eliminarInscripcionServicio(req.params.id);
-  res.status(204).send();
-}
-
-// CRUD Votantes (Admin)
-export async function listarTodosVotantes(req: Request, res: Response) {
-  const lista = await listarVotantes();
-  res.json(lista);
-}
-export async function obtenerVotanteAdmin(req: Request, res: Response) {
-  const votante = await obtenerVotantePorId(req.params.id);
-  if (!votante) return res.status(404).json({ error: 'Votante no encontrado' });
+// Gestión de Votantes
+export const obtenerVotante = controladorWrapper(async (req: Request, res: Response) => {
+  const votante = await servicioVotante.obtenerVotante(req.params.dni);
+  if (!votante) throw new AppError(404, 'Votante no encontrado');
   res.json(votante);
-}
-export async function actualizarVotanteAdmin(req: Request, res: Response) {
-  const votante = await actualizarVotante(req.params.id, req.body);
-  res.json(votante);
-}
-export async function eliminarVotanteAdmin(req: Request, res: Response) {
-  await eliminarVotante(req.params.id);
-  res.status(204).send();
-}
+});
+
+// Listados especiales
+export const listarVotantesDeEleccion = controladorWrapper(async (req: Request, res: Response) => {
+  const votantes = await listarVotantesEleccion(req.params.nombre);
+  res.json(votantes);
+});
+
+export const listarPartidosDeEleccion = controladorWrapper(async (req: Request, res: Response) => {
+  const partidos = await listarPartidosEleccion(req.params.nombre);
+  res.json(partidos);
+});

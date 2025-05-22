@@ -16,6 +16,7 @@ async function main() {
   // Borra todos los votantes antes de crear nuevos
   await prisma.votante.deleteMany({});
   console.log(`Tabla vaciada. Iniciando seed para ${cantidad} votantes...`);
+  
   for (let i = 0; i < cantidad; i++) {
     const nombre = faker.person.firstName();
     const apellidos = faker.person.lastName().split(' ');

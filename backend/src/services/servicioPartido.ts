@@ -1,29 +1,47 @@
 import { PrismaClient, Partido } from '@prisma/client';
 const prisma = new PrismaClient();
 
-export async function crearPartidoServicio(data: {
-  nombre: string;
+export async function crearPartido(data: {
   siglas: string;
-  logoUrl?: string;
+  nombre: string;
+  descripcion: string;
 }): Promise<Partido> {
   return prisma.partido.create({ data });
 }
 
-export async function obtenerPartidoPorId(id: string): Promise<Partido | null> {
-  return prisma.partido.findUnique({ where: { id } });
+export async function obtenerPartido(siglas: string): Promise<Partido | null> {
+  return prisma.partido.findUnique({ 
+    where: { siglas } 
+  });
 }
 
-export async function listarPartidosServicio(): Promise<Partido[]> {
+export async function listarPartidos(eleccionId?: string): Promise<Partido[]> {
+  if (eleccionId) {
+    return prisma.partido.findMany({
+      where: {
+        presentaciones: {
+          some: {
+            eleccionId
+          }
+        }
+      }
+    });
+  }
   return prisma.partido.findMany();
 }
 
-export async function actualizarPartidoServicio(
-  id: string,
-  cambios: Partial<Omit<Partido, 'id'>>
+export async function actualizarPartido(
+  siglas: string,
+  cambios: Partial<Omit<Partido, 'siglas'>>
 ): Promise<Partido> {
-  return prisma.partido.update({ where: { id }, data: cambios });
+  return prisma.partido.update({ 
+    where: { siglas }, 
+    data: cambios 
+  });
 }
 
-export async function eliminarPartidoServicio(id: string): Promise<Partido> {
-  return prisma.partido.delete({ where: { id } });
+export async function eliminarPartido(siglas: string): Promise<Partido> {
+  return prisma.partido.delete({ 
+    where: { siglas } 
+  });
 }

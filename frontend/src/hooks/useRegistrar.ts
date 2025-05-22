@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { DatosRegistro, registrarUsuarioLocal } from '../services/servicioAutenticacionLocal';
+import { DatosRegistro, registrarUsuarioLocal } from '../services/servicioAutenticacion';
 import type { UsuarioLocal } from '../types/UsuarioLocal';
 
 export const useRegistrar = () => {

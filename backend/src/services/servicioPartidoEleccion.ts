@@ -1,21 +1,29 @@
 import { PrismaClient, PartidoEleccion } from '@prisma/client';
 const prisma = new PrismaClient();
 
-export async function asignarPartidoAEleccionServicio(data: {
+export async function asignarPartidoEleccion(data: {
   partidoId: string;
   eleccionId: string;
 }): Promise<PartidoEleccion> {
   return prisma.partidoEleccion.create({ data });
 }
 
-export async function listarPartidosPorEleccionServicio(
+export async function listarPartidosEleccion(
   eleccionId: string
 ): Promise<PartidoEleccion[]> {
   return prisma.partidoEleccion.findMany({ where: { eleccionId } });
 }
 
-export async function eliminarAsignacionPartido(
-  id: string
+export async function eliminarPartidoEleccion(
+  partidoId: string,
+  eleccionId: string
 ): Promise<PartidoEleccion> {
-  return prisma.partidoEleccion.delete({ where: { id } });
+  return prisma.partidoEleccion.delete({
+    where: {
+      partidoId_eleccionId: {
+        partidoId,
+        eleccionId
+      }
+    }
+  });
 }

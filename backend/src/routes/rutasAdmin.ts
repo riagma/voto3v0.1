@@ -4,9 +4,6 @@ import { autenticarAdmin } from '../middlewares/autenticacion';
 import {
   eleccionSchema,
   partidoSchema,
-  partidoEleccionSchema,
-  registroVotanteEleccionSchema,
-  votanteSchema,
 } from '../schemas/schemas';
 import {
   iniciarSesionAdministrador,
@@ -20,45 +17,35 @@ import {
   listarPartidos,
   actualizarPartido,
   eliminarPartido,
-  asignarPartido,
+  obtenerVotante,
+  listarVotantesDeEleccion,
   listarPartidosDeEleccion,
-  eliminarAsignacion,
-  listarInscripciones,
-  actualizarInscripcion,
-  eliminarInscripcion,
-  listarTodosVotantes,
-  obtenerVotanteAdmin,
-  actualizarVotanteAdmin,
-  eliminarVotanteAdmin,
 } from '../controllers/controladorAdmin';
 
 const rutasAdmin = Router();
+
+// Autenticación
 rutasAdmin.post('/login', iniciarSesionAdministrador);
 
 // Elecciones
-rutasAdmin.post('/eleccion', autenticarAdmin, validarEsquema(eleccionSchema), crearEleccion);
-rutasAdmin.get('/eleccion/:id', autenticarAdmin, obtenerEleccion);
+rutasAdmin.post('/elecciones', autenticarAdmin, validarEsquema(eleccionSchema), crearEleccion);
+rutasAdmin.get('/elecciones/:nombre', autenticarAdmin, obtenerEleccion);
 rutasAdmin.get('/elecciones', autenticarAdmin, listarElecciones);
-rutasAdmin.put('/eleccion/:id', autenticarAdmin, validarEsquema(eleccionSchema), actualizarEleccion);
-rutasAdmin.delete('/eleccion/:id', autenticarAdmin, eliminarEleccion);
+rutasAdmin.put('/elecciones/:nombre', autenticarAdmin, validarEsquema(eleccionSchema), actualizarEleccion);
+rutasAdmin.delete('/elecciones/:nombre', autenticarAdmin, eliminarEleccion);
+
 // Partidos
-rutasAdmin.post('/partido', autenticarAdmin, validarEsquema(partidoSchema), crearPartido);
-rutasAdmin.get('/partido/:id', autenticarAdmin, obtenerPartido);
+rutasAdmin.post('/partidos', autenticarAdmin, validarEsquema(partidoSchema), crearPartido);
+rutasAdmin.get('/partidos/:siglas', autenticarAdmin, obtenerPartido);
 rutasAdmin.get('/partidos', autenticarAdmin, listarPartidos);
-rutasAdmin.put('/partido/:id', autenticarAdmin, validarEsquema(partidoSchema), actualizarPartido);
-rutasAdmin.delete('/partido/:id', autenticarAdmin, eliminarPartido);
-// Asignaciones Partido-Elección
-rutasAdmin.post('/partido/eleccion', autenticarAdmin, validarEsquema(partidoEleccionSchema), asignarPartido);
-rutasAdmin.get('/partido/eleccion/:eleccionId', autenticarAdmin, listarPartidosDeEleccion);
-rutasAdmin.delete('/partido/eleccion/:id', autenticarAdmin, eliminarAsignacion);
-// Inscripciones
-rutasAdmin.get('/inscripciones', autenticarAdmin, listarInscripciones);
-rutasAdmin.put('/inscripcion/:id', autenticarAdmin, validarEsquema(registroVotanteEleccionSchema), actualizarInscripcion);
-rutasAdmin.delete('/inscripcion/:id', autenticarAdmin, eliminarInscripcion);
+rutasAdmin.put('/partidos/:siglas', autenticarAdmin, validarEsquema(partidoSchema), actualizarPartido);
+rutasAdmin.delete('/partidos/:siglas', autenticarAdmin, eliminarPartido);
+
+// Listados especiales
+rutasAdmin.get('/elecciones/:nombre/partidos', autenticarAdmin, listarPartidosDeEleccion);
+rutasAdmin.get('/elecciones/:nombre/votantes', autenticarAdmin, listarVotantesDeEleccion);
+
 // Votantes
-rutasAdmin.get('/votantes', autenticarAdmin, listarTodosVotantes);
-rutasAdmin.get('/votante/:id', autenticarAdmin, obtenerVotanteAdmin);
-rutasAdmin.put('/votante/:id', autenticarAdmin, validarEsquema(votanteSchema), actualizarVotanteAdmin);
-rutasAdmin.delete('/votante/:id', autenticarAdmin, eliminarVotanteAdmin);
+rutasAdmin.get('/votantes/:dni', autenticarAdmin, obtenerVotante);
 
 export default rutasAdmin;

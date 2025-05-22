@@ -12,7 +12,7 @@ export async function autenticarUsuario(req: Request, res: Response, next: NextF
   }
   try {
     const contenido: any = jwt.verify(encabezado[1], SECRETO_JWT);
-    const votante = await prisma.votante.findUnique({ where: { id: contenido.id } });
+    const votante = await prisma.votante.findUnique({ where: { dni: contenido.dni } });
     if (!votante) return res.status(401).json({ error: 'Usuario no encontrado' });
     (req as any).votante = votante;
     next();

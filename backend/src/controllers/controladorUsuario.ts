@@ -1,87 +1,109 @@
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
-import bcrypt from 'bcrypt';
-import {
-  crearVotante,
-  obtenerVotantePorId,
-  obtenerVotantePorDNI,
-  listarVotantes,
-  actualizarVotante,
-  eliminarVotante,
-} from '../services/servicioVotante';
-import { listarEleccionesServicio } from '../services/servicioEleccion';
-import {
-  inscribirVotanteAEleccionServicio,
-  listarInscripcionesServicio,
-  actualizarInscripcionServicio,
-  eliminarInscripcionServicio,
-} from '../services/servicioRegistro';
+import { AppError, handleError } from '../utils/errors';
+import * as servicioVotante from '../services/servicioVotante';
+import * as servicioEleccion from '../services/servicioEleccion';
+import * as servicioRegistro from '../services/servicioRegistro';
 
 const SECRETO_JWT = process.env.JWT_SECRET || 'super_secreto';
 
-// Registro e inicio de sesión
-export async function registrarUsuario(req: Request, res: Response) {
-  try {
-    const { id } = await crearVotante(req.body);
-    res.status(201).json({ id });
-  } catch (error: any) {
-    if (error.code === 'P2002') return res.status(409).json({ error: 'DNI o correo ya en uso' });
-    throw error;
-  }
-}
+const controladorWrapper = (fn: (req: Request, res: Response) => Promise<void>) => {
+  return async (req: Request, res: Response) => {
+    try {
+      await fn(req, res);
+    } catch (error) {
+      const { statusCode, message } = handleError(error);
+      res.status(statusCode).json({ error: message });
+    }
+  };
+};
 
-export async function iniciarSesionUsuario(req: Request, res: Response) {
-  console.log('🛠️  LOGIN - req.body:', req.body);
-  const { dni, password } = req.body;
-  if (!dni || !password) return res.status(400).json({ error: 'Faltan credenciales' });
-  const votante = await obtenerVotantePorDNI(dni);
-  if (!votante) return res.status(404).json({ error: 'Usuario no encontrado' });
-  if (!votante.hashContrasena) return res.status(401).json({ error: 'Credenciales inválidas' });
-  const esValido = await bcrypt.compare(password, votante.hashContrasena);
-  if (!esValido) return res.status(401).json({ error: 'Credenciales inválidas' });
-  const token = jwt.sign({ id: votante.id }, SECRETO_JWT, { expiresIn: '8h' });
+// Autenticación y registro
+export const registrarUsuario = controladorWrapper(async (req: Request, res: Response) => {
+  const votante = await servicioVotante.crearVotante(req.body);
+  const token = jwt.sign({ id: votante.dni }, SECRETO_JWT, { expiresIn: '8h' });
+  res.status(201).json({ token });
+});
+
+export const iniciarSesionUsuario = controladorWrapper(async (req: Request, res: Response) => {
+  const { dni, contrasena } = req.body;
+  if (!dni || !contrasena) {
+    throw new AppError(400, 'Faltan credenciales');
+  }
+  
+  const votante = await servicioVotante.validarCredenciales({ dni, contrasena });
+  const token = jwt.sign({ dni: votante.dni }, SECRETO_JWT, { expiresIn: '8h' });
   res.json({ token });
-}
+});
 
 // Perfil de usuario
-export async function verPerfil(req: Request, res: Response) {
-  const votante = (req as any).votante;
+export const verPerfil = controladorWrapper(async (req: Request, res: Response) => {
+  const { votante } = req;
   res.json(votante);
-}
+});
 
-export async function actualizarPerfil(req: Request, res: Response) {
-  const id = (req as any).votante.id;
-  const actualizado = await actualizarVotante(id, req.body);
-  res.json(actualizado);
-}
+export const actualizarPerfil = controladorWrapper(async (req: Request, res: Response) => {
+  const votante = await servicioVotante.actualizarVotante(
+    req.votante.dni,
+    req.body
+  );
+  res.json(votante);
+});
 
-export async function eliminarPerfil(req: Request, res: Response) {
-  const id = (req as any).votante.id;
-  await eliminarVotante(id);
+export const actualizarContrasena = controladorWrapper(async (req: Request, res: Response) => {
+  const { contrasenaActual, nuevaContrasena } = req.body;
+  
+  await servicioVotante.actualizarContrasena(
+    req.votante.dni,
+    contrasenaActual,
+    nuevaContrasena
+  );
+  
   res.status(204).send();
-}
+});
 
-// Elecciones e inscripciones
-export async function listarEleccionesDisponibles(req: Request, res: Response) {
-  const elecciones = await listarEleccionesServicio();
-  const ahora = new Date();
-  res.json(elecciones.filter(e => e.fechaInicio <= ahora && e.fechaFin >= ahora));
-}
+export const eliminarPerfil = controladorWrapper(async (req: Request, res: Response) => {
+  await servicioVotante.eliminarVotante(req.votante.dni);
+  res.status(204).send();
+});
 
-export async function inscribirEnEleccion(req: Request, res: Response) {
-  try {
-    const registro = await inscribirVotanteAEleccionServicio({
-      votanteId: (req as any).votante.id,
-      eleccionId: req.body.eleccionId,
-    });
-    res.status(201).json(registro);
-  } catch (error: any) {
-    if (error.code === 'P2002') return res.status(409).json({ error: 'Ya inscrito en esta elección' });
-    throw error;
+// Elecciones
+export const listarEleccionesDisponibles = controladorWrapper(async (req: Request, res: Response) => {
+  const elecciones = await servicioEleccion.listarElecciones({
+    estado: 'registro',
+    registrado: false,
+    votanteId: req.votante.dni
+  });
+  res.json(elecciones);
+});
+
+export const listarMisElecciones = controladorWrapper(async (req: Request, res: Response) => {
+  const elecciones = await servicioEleccion.listarElecciones({
+    registrado: true,
+    votanteId: req.votante.dni
+  });
+  res.json(elecciones);
+});
+
+// Registros en elecciones
+export const registrarEnEleccion = controladorWrapper(async (req: Request, res: Response) => {
+  const registro = await servicioRegistro.registrarVotanteEleccion({
+    votanteId: req.votante.dni,
+    eleccionId: req.params.nombre,
+    ...req.body
+  });
+  res.status(201).json(registro);
+});
+
+export const obtenerRegistroEleccion = controladorWrapper(async (req: Request, res: Response) => {
+  const registro = await servicioRegistro.obtenerRegistroVotanteEleccion(
+    req.votante.dni,
+    req.params.nombre
+  );
+  
+  if (!registro) {
+    throw new AppError(404, 'Registro no encontrado');
   }
-}
-
-export async function listarMisInscripciones(req: Request, res: Response) {
-  const lista = await listarInscripcionesServicio();
-  res.json(lista.filter(r => r.votanteId === (req as any).votante.id));
-}
+  
+  res.json(registro);
+});

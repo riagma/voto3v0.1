@@ -11,59 +11,85 @@ generator client {
 }
 
 model Votante {
-  id              String                        @id @default(uuid())
-  nombre          String
-  primerApellido  String
-  segundoApellido String
-  dni             String                        @unique
-  correo          String?                       @unique
-  hashContrasena  String?                        
-  registradoEn    DateTime                      @default(now())
+  dni               String        @id
+  nombre            String
+  primerApellido    String
+  segundoApellido   String
+  correoElectronico String?       @unique
+  hashContrasena    String?                        
 
-  registros       RegistroVotanteEleccion[]
+  registros         RegistroVotanteEleccion[]
 }
 
 model Eleccion {
-  id             String                         @id @default(uuid())
-  nombre         String
-  fechaInicio    DateTime
-  fechaFin       DateTime
-  estado         String                         // Ej. "borrador" | "abierta" | "cerrada"
+  nombre                String        @id
+  fechaInicioRegistro   DateTime
+  fechaFinRegistro      DateTime
+  fechaInicioVotacion   DateTime
+  fechaFinVotacion      DateTime
+  fechaCelebracion      DateTime
+  estado                String
 
-  presentaciones PartidoEleccion[] 
-  registros      RegistroVotanteEleccion[]    // Votantes inscritos
+  presentaciones        PartidoEleccion[] 
+  registros             RegistroVotanteEleccion[]
+  resultado             ResultadoEleccion?
 }
 
 model Partido {
-  id             String                         @id @default(uuid())
-  nombre         String                         @unique
-  siglas         String                         @unique
-  logoUrl        String?
+  siglas         String        @id
+  nombre         String        @unique
+  descripcion    String
 
-  presentaciones PartidoEleccion[]            // Elecciones en las que participa
+  presentaciones PartidoEleccion[]
+  resultados     ResultadoPartido[]
 }
 
-/// Tabla intermedia Partidos ↔ Elecciones
 model PartidoEleccion {
-  id           String      @id @default(uuid())
-  partido      Partido     @relation(fields: [partidoId], references: [id], onDelete: Cascade)
-  partidoId    String
-  eleccion     Eleccion    @relation(fields: [eleccionId], references: [id], onDelete: Cascade)
+  partido      Partido     @relation(fields: [partidoId], references: [siglas], onDelete: Cascade)
+  partidoId    String      
+  eleccion     Eleccion    @relation(fields: [eleccionId], references: [nombre], onDelete: Cascade)
   eleccionId   String
 
-  @@unique([partidoId, eleccionId])
+  @@id([partidoId, eleccionId]) 
 }
 
-/// Registro de qué votante está habilitado para cada elección
 model RegistroVotanteEleccion {
-  id             String       @id @default(uuid())
-  votante        Votante      @relation(fields: [votanteId], references: [id], onDelete: Cascade)
-  votanteId      String
-  eleccion       Eleccion     @relation(fields: [eleccionId], references: [id], onDelete: Cascade)
+  
+  votante        Votante      @relation(fields: [votanteId], references: [dni], onDelete: Cascade)
+  votanteId      String      
+  eleccion       Eleccion     @relation(fields: [eleccionId], references: [nombre], onDelete: Cascade)
   eleccionId     String
+  compromiso     String     
+  transaccion    String
   fechaRegistro  DateTime     @default(now())
+  datosPrivados  String?
 
-  @@unique([votanteId, eleccionId])
+  @@id([votanteId, eleccionId])
+  @@index([eleccionId])
+}
+
+model ResultadoEleccion {
+  eleccion           Eleccion    @relation(fields: [eleccionId], references: [nombre], onDelete: Cascade)
+  eleccionId         String      @id
+  censados           Int         @default(0)
+  votantes           Int         @default(0)
+  abstenciones       Int         @default(0)
+  votosBlancos       Int         @default(0)
+  votosNulos         Int         @default(0)
+  fechaRecuento      DateTime    @default(now())
+  
+  resultadosPartidos ResultadoPartido[]
+}
+
+model ResultadoPartido {
+  partido         Partido           @relation(fields: [partidoId], references: [siglas], onDelete: Cascade)
+  partidoId       String
+  resultado       ResultadoEleccion @relation(fields: [eleccionId], references: [eleccionId], onDelete: Cascade)
+  eleccionId      String
+  votos           Int               @default(0)
+  porcentaje      Float             @default(0)
+
+  @@id([partidoId, eleccionId])
 }
 
 /// Credenciales de acceso del administrador
@@ -71,4 +97,3 @@ model Administrador {
   correo          String      @id
   hashContrasena  String                              
 }
-
