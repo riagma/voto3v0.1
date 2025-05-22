@@ -1,33 +1,36 @@
 import { useState } from 'react';
-import { iniciarSesionLocal } from '../services/servicioAutenticacion';
-import useUsuarioStore from '../store/usuarioStore';
-import type { UsuarioLocal } from '../types/UsuarioLocal';
+import { iniciarSesion as iniciarSesionService } from '../services/servicioAutenticacion';
+import { useUsuarioStore } from '../stores/usuarioStore';
+
+interface Credenciales {
+  dni: string;
+  contrasena: string;
+}
 
 export const useIniciarSesion = () => {
   const [cargando, setCargando] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const { usuario, setUsuario } = useUsuarioStore();
+  const votante = useUsuarioStore(state => state.votante);
 
-  const iniciarSesion = async (credenciales: { nombre: string; clave: string }): Promise<UsuarioLocal | null> => {
+  const login = async (credenciales: Credenciales): Promise<boolean> => {
     setCargando(true);
     setError(null);
+
     try {
-      const usuarioLogueado = iniciarSesionLocal(credenciales);
-      // Actualizamos el contexto global con el usuario desencriptado
-      setUsuario(usuarioLogueado);
-      console.log(usuarioLogueado);
-      return usuarioLogueado;
+      await iniciarSesionService(credenciales);
+      return true;
     } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("Error desconocido");
-      }
-      return null;
+      setError(err instanceof Error ? err.message : "Error desconocido");
+      return false;
     } finally {
       setCargando(false);
     }
   };
 
-  return { iniciarSesion, usuario, cargando, error };
+  return {
+    login,
+    votante,
+    cargando,
+    error
+  };
 };

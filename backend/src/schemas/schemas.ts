@@ -14,8 +14,13 @@ export const votanteSchema = z.object({
   nombre: z.string().min(1, { message: "El nombre es obligatorio" }),
   primerApellido: z.string().min(1, { message: "El primer apellido es obligatorio" }),
   segundoApellido: z.string().min(1, { message: "El segundo apellido es obligatorio" }),
-  correoElectronico: z.string().email({ message: "Email inválido" }).optional(),
-  hashContrasena: z.string().min(60, { message: "Hash de contraseña inválido" }).optional(),
+  correoElectronico: z.string().email({ message: "Email inválido" }).optional().nullable(),
+  hashContrasena: z.string().min(60, { message: "Hash de contraseña inválido" }).optional().nullable(),
+});
+
+export const contrasenaSchema = z.object({
+  contrasenaActual: z.string().min(1, { message: "La contraseña actual es obligatoria" }),
+  nuevaContrasena: z.string().min(1, { message: "La nueva contraseña es obligatoria" })
 });
 
 // Esquema para Elección
@@ -39,22 +44,22 @@ export const partidoSchema = z.object({
 // Esquema para PartidoEleccion
 export const partidoEleccionSchema = z.object({
   partidoId: z.string().min(1),
-  eleccionId: z.string().min(1),
+  eleccionId: z.number().int().positive(),
 });
 
 // Esquema para RegistroVotanteEleccion
 export const registroVotanteEleccionSchema = z.object({
   votanteId: z.string().length(9),
-  eleccionId: z.string().min(1),
+  eleccionId: z.number().int().positive(),
   compromiso: z.string().min(1),
   transaccion: z.string().min(1),
   fechaRegistro: z.string().datetime(),
-  datosPrivados: z.string().optional(),
+  datosPrivados: z.string().optional().nullable(),
 });
 
 // Esquema para ResultadoEleccion
 export const resultadoEleccionSchema = z.object({
-  eleccionId: z.string().min(1),
+  eleccionId: z.number().int().positive(),
   censados: z.number().int().nonnegative(),
   votantes: z.number().int().nonnegative(),
   abstenciones: z.number().int().nonnegative(),
@@ -66,7 +71,7 @@ export const resultadoEleccionSchema = z.object({
 // Esquema para ResultadoPartido
 export const resultadoPartidoSchema = z.object({
   partidoId: z.string().min(1),
-  eleccionId: z.string().min(1),
+  eleccionId: z.number().int().positive(),
   votos: z.number().int().nonnegative(),
   porcentaje: z.number().min(0).max(100),
 });

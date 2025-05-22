@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Eleccion } from '../types/Eleccion';
 import { servicioElecciones } from '../services/servicioElecciones';
-import useUsuarioStore from '../store/usuarioStore';
+import useUsuarioStore from '../stores/usuarioStore';
 
 export const useElecciones = () => {
   const [elecciones, setElecciones] = useState<Eleccion[]>([]);

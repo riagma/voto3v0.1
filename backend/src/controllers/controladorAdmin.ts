@@ -35,7 +35,8 @@ export const crearEleccion = controladorWrapper(async (req: Request, res: Respon
 });
 
 export const obtenerEleccion = controladorWrapper(async (req: Request, res: Response) => {
-  const eleccion = await servicioEleccion.obtenerEleccion(req.params.nombre);
+  const id = parseInt(req.params.nombre, 10);
+  const eleccion = await servicioEleccion.obtenerEleccion(id);
   if (!eleccion) throw new AppError(404, 'Elección no encontrada');
   res.json(eleccion);
 });
@@ -46,12 +47,14 @@ export const listarElecciones = controladorWrapper(async (req: Request, res: Res
 });
 
 export const actualizarEleccion = controladorWrapper(async (req: Request, res: Response) => {
-  const eleccion = await servicioEleccion.actualizarEleccion(req.params.nombre, req.body);
+  const id = parseInt(req.params.nombre, 10);
+  const eleccion = await servicioEleccion.actualizarEleccion(id, req.body);
   res.json(eleccion);
 });
 
 export const eliminarEleccion = controladorWrapper(async (req: Request, res: Response) => {
-  await servicioEleccion.eliminarEleccion(req.params.nombre);
+  const id = parseInt(req.params.nombre, 10);
+  await servicioEleccion.eliminarEleccion(id);
   res.status(204).send();
 });
 
@@ -89,13 +92,20 @@ export const obtenerVotante = controladorWrapper(async (req: Request, res: Respo
   res.json(votante);
 });
 
+export const crearVotante = controladorWrapper(async (req: Request, res: Response) => {
+  const votante = await servicioVotante.crearVotante(req.body);
+  res.status(201).json(votante);
+});
+
 // Listados especiales
 export const listarVotantesDeEleccion = controladorWrapper(async (req: Request, res: Response) => {
-  const votantes = await listarVotantesEleccion(req.params.nombre);
+  const id = parseInt(req.params.nombre, 10);
+  const votantes = await listarVotantesEleccion(id);
   res.json(votantes);
 });
 
 export const listarPartidosDeEleccion = controladorWrapper(async (req: Request, res: Response) => {
-  const partidos = await listarPartidosEleccion(req.params.nombre);
+  const id = parseInt(req.params.nombre, 10);
+  const partidos = await listarPartidosEleccion(id);
   res.json(partidos);
 });

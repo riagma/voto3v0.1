@@ -3,20 +3,20 @@ const prisma = new PrismaClient();
 
 export async function asignarPartidoEleccion(data: {
   partidoId: string;
-  eleccionId: string;
+  eleccionId: number;
 }): Promise<PartidoEleccion> {
   return prisma.partidoEleccion.create({ data });
 }
 
 export async function listarPartidosEleccion(
-  eleccionId: string
+  eleccionId: number
 ): Promise<PartidoEleccion[]> {
   return prisma.partidoEleccion.findMany({ where: { eleccionId } });
 }
 
 export async function eliminarPartidoEleccion(
   partidoId: string,
-  eleccionId: string
+  eleccionId: number
 ): Promise<PartidoEleccion> {
   return prisma.partidoEleccion.delete({
     where: {

@@ -1,13 +1,14 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import useUsuarioStore from '../store/usuarioStore';
+import { useUsuarioStore } from '../stores/usuarioStore';
+import { cerrarSesion } from '../services/servicioAutenticacion';
 
 const Encabezado: React.FC = () => {
-  const { usuario, setUsuario } = useUsuarioStore();
+  const { votante, estaAutenticado } = useUsuarioStore();
   const navigate = useNavigate();
 
-  const cerrarSesion = () => {
-    setUsuario(null);
+  const handleCerrarSesion = () => {
+    cerrarSesion();
     navigate('/');
   };
 
@@ -17,10 +18,12 @@ const Encabezado: React.FC = () => {
         Sistema de Votación
       </Link>
       <div>
-        {usuario ? (
+        {estaAutenticado && votante ? (
           <>
-            <span className="text-light me-3">Hola, {usuario.nombre}!</span>
-            <button className="btn btn-danger" onClick={cerrarSesion}>
+            <span className="text-light me-3">
+              {votante.nombre} {votante.primerApellido}
+            </span>
+            <button className="btn btn-danger" onClick={handleCerrarSesion}>
               Cerrar Sesión
             </button>
           </>

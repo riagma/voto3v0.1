@@ -19,12 +19,6 @@ const controladorWrapper = (fn: (req: Request, res: Response) => Promise<void>) 
 };
 
 // Autenticación y registro
-export const registrarUsuario = controladorWrapper(async (req: Request, res: Response) => {
-  const votante = await servicioVotante.crearVotante(req.body);
-  const token = jwt.sign({ id: votante.dni }, SECRETO_JWT, { expiresIn: '8h' });
-  res.status(201).json({ token });
-});
-
 export const iniciarSesionUsuario = controladorWrapper(async (req: Request, res: Response) => {
   const { dni, contrasena } = req.body;
   if (!dni || !contrasena) {
@@ -36,13 +30,25 @@ export const iniciarSesionUsuario = controladorWrapper(async (req: Request, res:
   res.json({ token });
 });
 
-// Perfil de usuario
-export const verPerfil = controladorWrapper(async (req: Request, res: Response) => {
+// Autenticación
+export const validarCredenciales = controladorWrapper(async (req: Request, res: Response) => {
+  const { dni, contrasena } = req.body;
+  if (!dni || !contrasena) {
+    throw new AppError(400, 'Faltan credenciales');
+  }
+  
+  const votante = await servicioVotante.validarCredenciales({ dni, contrasena });
+  const token = jwt.sign({ dni: votante.dni }, SECRETO_JWT, { expiresIn: '8h' });
+  res.json({ token });
+});
+
+// Perfil de votante
+export const obtenerVotante = controladorWrapper(async (req: Request, res: Response) => {
   const { votante } = req;
   res.json(votante);
 });
 
-export const actualizarPerfil = controladorWrapper(async (req: Request, res: Response) => {
+export const actualizarVotante = controladorWrapper(async (req: Request, res: Response) => {
   const votante = await servicioVotante.actualizarVotante(
     req.votante.dni,
     req.body
@@ -52,17 +58,22 @@ export const actualizarPerfil = controladorWrapper(async (req: Request, res: Res
 
 export const actualizarContrasena = controladorWrapper(async (req: Request, res: Response) => {
   const { contrasenaActual, nuevaContrasena } = req.body;
-  
+
+  // Validar la contraseña actual antes de actualizar
+  await servicioVotante.validarCredenciales({
+    dni: req.votante.dni,
+    contrasena: contrasenaActual
+  });
+
   await servicioVotante.actualizarContrasena(
     req.votante.dni,
-    contrasenaActual,
     nuevaContrasena
   );
-  
+
   res.status(204).send();
 });
 
-export const eliminarPerfil = controladorWrapper(async (req: Request, res: Response) => {
+export const eliminarVotante = controladorWrapper(async (req: Request, res: Response) => {
   await servicioVotante.eliminarVotante(req.votante.dni);
   res.status(204).send();
 });
@@ -98,7 +109,7 @@ export const registrarEnEleccion = controladorWrapper(async (req: Request, res: 
 export const obtenerRegistroEleccion = controladorWrapper(async (req: Request, res: Response) => {
   const registro = await servicioRegistro.obtenerRegistroVotanteEleccion(
     req.votante.dni,
-    req.params.nombre
+    parseInt(req.params.nombre, 10)
   );
   
   if (!registro) {

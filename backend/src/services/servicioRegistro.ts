@@ -9,33 +9,27 @@ type RegistroData = {
   datosPrivados?: string;
 };
 
-export async function registrarVotanteEleccion(data: RegistroData): Promise<RegistroVotanteEleccion> {
+export async function registrarVotanteEleccion(data: {
+  votanteId: string;
+  eleccionId: number;
+  compromiso: string;
+  transaccion: string;
+  datosPrivados?: string;
+}): Promise<RegistroVotanteEleccion> {
   return prisma.registroVotanteEleccion.create({
-    data: {
-      ...data,
-      fechaRegistro: new Date()
-    }
+    data
   });
 }
 
-export async function listarVotantesEleccion(eleccionId: string): Promise<RegistroVotanteEleccion[]> {
+export async function listarVotantesEleccion(eleccionId: number): Promise<RegistroVotanteEleccion[]> {
   return prisma.registroVotanteEleccion.findMany({
-    where: { eleccionId },
-    include: {
-      votante: {
-        select: {
-          nombre: true,
-          primerApellido: true,
-          segundoApellido: true
-        }
-      }
-    }
+    where: { eleccionId }
   });
 }
 
 export async function actualizarVotanteEleccion(
   votanteId: string,
-  eleccionId: string,
+  eleccionId: number,
   cambios: Partial<Omit<RegistroData, 'votanteId' | 'eleccionId'>>
 ): Promise<RegistroVotanteEleccion> {
   return prisma.registroVotanteEleccion.update({
@@ -51,9 +45,23 @@ export async function actualizarVotanteEleccion(
 
 export async function eliminarVotanteEleccion(
   votanteId: string,
-  eleccionId: string
+  eleccionId: number
 ): Promise<RegistroVotanteEleccion> {
   return prisma.registroVotanteEleccion.delete({
+    where: {
+      votanteId_eleccionId: {
+        votanteId,
+        eleccionId
+      }
+    }
+  });
+}
+
+export async function obtenerRegistroVotanteEleccion(
+  votanteId: string,
+  eleccionId: number
+): Promise<RegistroVotanteEleccion | null> {
+  return prisma.registroVotanteEleccion.findUnique({
     where: {
       votanteId_eleccionId: {
         votanteId,

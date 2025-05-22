@@ -1,30 +1,46 @@
 import { useState } from 'react';
-import { DatosRegistro, registrarUsuarioLocal } from '../services/servicioAutenticacion';
-import type { UsuarioLocal } from '../types/UsuarioLocal';
+import { useUsuarioStore } from '../stores/usuarioStore';
+import { 
+  registrarEnEleccion,
+  type RegistroEleccion,
+  type RegistroResponse
+} from '../services/servicioRegistro';
 
-export const useRegistrar = () => {
+export const useRegistrar = (eleccionId: number) => {
   const [cargando, setCargando] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [usuario, setUsuario] = useState<UsuarioLocal | null>(null);
+  const [registro, setRegistro] = useState<RegistroResponse | null>(null);
+  const votante = useUsuarioStore(state => state.votante);
 
-  const registrar = async (datos: DatosRegistro): Promise<UsuarioLocal | null> => {
+  const registrar = async (datos: RegistroEleccion): Promise<boolean> => {
+    if (!votante) {
+      setError('Debes estar autenticado para registrarte en una elección');
+      return false;
+    }
+
     setCargando(true);
     setError(null);
+
     try {
-      const nuevoUsuario = await registrarUsuarioLocal(datos);
-      setUsuario(nuevoUsuario);
-      return nuevoUsuario;
+      const response = await registrarEnEleccion(eleccionId, {
+        ...datos,
+        votanteId: votante.dni
+      });
+      
+      setRegistro(response);
+      return true;
     } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("Error desconocido");
-      }
-      return null;
+      setError(err instanceof Error ? err.message : "Error al registrarse en la elección");
+      return false;
     } finally {
       setCargando(false);
     }
   };
 
-  return { registrar, usuario, cargando, error };
+  return { 
+    registrar, 
+    registro, 
+    cargando, 
+    error 
+  };
 };

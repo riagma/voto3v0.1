@@ -14,32 +14,28 @@ if (isNaN(cantidad) || cantidad <= 0) {
 async function main() {
   // Borra todos los datos existentes
   await prisma.partido.deleteMany({});
-  console.log('Tabla vaciadas. Iniciando seed...');
+  console.log('Tabla vaciada. Iniciando seed...');
 
   // Crear partidos políticos
   const partidos = [
     {
       nombre: 'Partido Progreso Democrático',
       siglas: 'PPD',
-      logoUrl: 'https://via.placeholder.com/150',
       descripcion: 'Partido centrado en el desarrollo sostenible y la innovación social'
     },
     {
       nombre: 'Unión Liberal Reformista',
       siglas: 'ULR',
-      logoUrl: 'https://via.placeholder.com/150',
       descripcion: 'Partido enfocado en reformas económicas y libertades individuales'
     },
     {
       nombre: 'Alianza Verde Ciudadana',
       siglas: 'AVC',
-      logoUrl: 'https://via.placeholder.com/150',
       descripcion: 'Partido comprometido con la protección del medio ambiente'
     },
     {
       nombre: 'Movimiento Solidario Nacional',
       siglas: 'MSN',
-      logoUrl: 'https://via.placeholder.com/150',
       descripcion: 'Partido centrado en políticas sociales y bienestar comunitario'
     }
   ];
@@ -49,7 +45,15 @@ async function main() {
       data: partido
     });
   }
-  console.log('✅ Partidos políticos creados');
+  
+  // Mostrar partidos creados
+  const partidosCreados = await prisma.partido.findMany();
+  console.log('\nPartidos creados:');
+  partidosCreados.forEach(p => {
+    console.log(`- ${p.nombre} (${p.siglas})`);
+  });
+
+  console.log('\n✅ Seed de partidos completado');
 }
 
 main()

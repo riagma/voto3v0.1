@@ -30,11 +30,11 @@ export async function crearEleccion(data: EleccionData): Promise<Eleccion> {
 }
 
 export async function obtenerEleccion(
-  nombre: string, 
+  id: number, 
   votanteId?: string
 ): Promise<EleccionConDetalles | null> {
   return prisma.eleccion.findUnique({
-    where: { nombre },
+    where: { id },
     include: {
       presentaciones: {
         include: {
@@ -103,18 +103,18 @@ export async function listarElecciones(options?: {
 }
 
 export async function actualizarEleccion(
-  nombre: string,
-  cambios: Partial<Omit<EleccionData, 'nombre'>>
+  id: number,
+  cambios: Partial<Omit<EleccionData, 'id'>>
 ): Promise<Eleccion> {
   return prisma.eleccion.update({
-    where: { nombre },
+    where: { id },
     data: cambios
   });
 }
 
-export async function eliminarEleccion(nombre: string): Promise<Eleccion> {
+export async function eliminarEleccion(id: number): Promise<Eleccion> {
   return prisma.eleccion.delete({
-    where: { nombre }
+    where: { id }
   });
 }
 

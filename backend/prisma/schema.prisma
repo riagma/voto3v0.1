@@ -22,17 +22,18 @@ model Votante {
 }
 
 model Eleccion {
-  nombre                String        @id
-  fechaInicioRegistro   DateTime
-  fechaFinRegistro      DateTime
-  fechaInicioVotacion   DateTime
-  fechaFinVotacion      DateTime
-  fechaCelebracion      DateTime
-  estado                String
+  id                  Int         @id @default(autoincrement())
+  nombre              String      @unique
+  fechaInicioRegistro DateTime
+  fechaFinRegistro    DateTime
+  fechaInicioVotacion DateTime
+  fechaFinVotacion    DateTime
+  fechaCelebracion    DateTime
+  estado              String
 
-  presentaciones        PartidoEleccion[] 
-  registros             RegistroVotanteEleccion[]
-  resultado             ResultadoEleccion?
+  presentaciones      PartidoEleccion[] 
+  registros           RegistroVotanteEleccion[]
+  resultado           ResultadoEleccion?
 }
 
 model Partido {
@@ -47,8 +48,8 @@ model Partido {
 model PartidoEleccion {
   partido      Partido     @relation(fields: [partidoId], references: [siglas], onDelete: Cascade)
   partidoId    String      
-  eleccion     Eleccion    @relation(fields: [eleccionId], references: [nombre], onDelete: Cascade)
-  eleccionId   String
+  eleccion     Eleccion    @relation(fields: [eleccionId], references: [id], onDelete: Cascade)
+  eleccionId   Int
 
   @@id([partidoId, eleccionId]) 
 }
@@ -57,8 +58,8 @@ model RegistroVotanteEleccion {
   
   votante        Votante      @relation(fields: [votanteId], references: [dni], onDelete: Cascade)
   votanteId      String      
-  eleccion       Eleccion     @relation(fields: [eleccionId], references: [nombre], onDelete: Cascade)
-  eleccionId     String
+  eleccion       Eleccion     @relation(fields: [eleccionId], references: [id], onDelete: Cascade)
+  eleccionId     Int
   compromiso     String     
   transaccion    String
   fechaRegistro  DateTime     @default(now())
@@ -69,8 +70,8 @@ model RegistroVotanteEleccion {
 }
 
 model ResultadoEleccion {
-  eleccion           Eleccion    @relation(fields: [eleccionId], references: [nombre], onDelete: Cascade)
-  eleccionId         String      @id
+  eleccion           Eleccion    @relation(fields: [eleccionId], references: [id], onDelete: Cascade)
+  eleccionId         Int         @id
   censados           Int         @default(0)
   votantes           Int         @default(0)
   abstenciones       Int         @default(0)
@@ -85,7 +86,7 @@ model ResultadoPartido {
   partido         Partido           @relation(fields: [partidoId], references: [siglas], onDelete: Cascade)
   partidoId       String
   resultado       ResultadoEleccion @relation(fields: [eleccionId], references: [eleccionId], onDelete: Cascade)
-  eleccionId      String
+  eleccionId      Int
   votos           Int               @default(0)
   porcentaje      Float             @default(0)
 

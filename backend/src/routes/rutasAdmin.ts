@@ -4,6 +4,7 @@ import { autenticarAdmin } from '../middlewares/autenticacion';
 import {
   eleccionSchema,
   partidoSchema,
+  votanteSchema,
 } from '../schemas/schemas';
 import {
   iniciarSesionAdministrador,
@@ -17,6 +18,7 @@ import {
   listarPartidos,
   actualizarPartido,
   eliminarPartido,
+  crearVotante,
   obtenerVotante,
   listarVotantesDeEleccion,
   listarPartidosDeEleccion,
@@ -47,5 +49,5 @@ rutasAdmin.get('/elecciones/:nombre/votantes', autenticarAdmin, listarVotantesDe
 
 // Votantes
 rutasAdmin.get('/votantes/:dni', autenticarAdmin, obtenerVotante);
-
+rutasAdmin.post('/votantes', autenticarAdmin, validarEsquema(votanteSchema), crearVotante);
 export default rutasAdmin;
